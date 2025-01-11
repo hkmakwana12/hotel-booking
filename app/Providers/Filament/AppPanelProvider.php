@@ -53,6 +53,6 @@ class AppPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->tenant(model: Branch::class, slugAttribute: 'id', ownershipRelationship: 'branch');
+            ->tenant(model: Branch::class, slugAttribute: 'slug', ownershipRelationship: 'branch');
     }
 }

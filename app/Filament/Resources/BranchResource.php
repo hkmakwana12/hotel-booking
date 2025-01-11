@@ -37,7 +37,8 @@ class BranchResource extends Resource
                         ->live(onBlur: true)
                         ->afterStateUpdated(fn(callable $get, callable $set) => $set('slug', str()->slug($get('name')))),
                     Forms\Components\TextInput::make('slug')
-                        ->required(),
+                        ->required()
+                        ->unique(Branch::class, column: 'slug', ignoreRecord: true),
                     Forms\Components\Select::make('users')
                         ->relationship('users', 'name')
                         ->multiple()
