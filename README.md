@@ -1,7 +1,3 @@
-Certainly! I'll create a README.md file for your hotel booking project based on the information provided. Here's a suggested content for your README.md:
-
-**File: c:\Workspace\Git\hotel-booking\README.md**
-```markdown
 # Hotel Booking System
 
 ## Introduction
@@ -105,16 +101,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 ```
-
-This README provides a comprehensive overview of your project, including:
-
-1. A brief introduction
-2. Key features
-3. Installation instructions
-4. Usage guide
-5. Project structure overview
-6. Development and testing instructions
-7. Contribution guidelines
-8. License information
-
-You may want to adjust some details, such as the GitHub repository URL, based on your specific project setup. Also, feel free to add or modify sections as needed to best represent your project.
