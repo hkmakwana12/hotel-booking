@@ -22,7 +22,7 @@ This is a hotel booking system built with Laravel and Filament. It provides an a
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/hotel-booking.git
+   git clone https://github.com/hkmakwana12/hotel-booking.git
    ```
 
 2. Navigate to the project directory:
@@ -47,7 +47,7 @@ This is a hotel booking system built with Laravel and Filament. It provides an a
 
 6. Generate an application key:
    ```bash
-   php artisan key:generate
+   php artisan key:generate --seed
    ```
 
 7. Run database migrations:
@@ -100,4 +100,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-```
