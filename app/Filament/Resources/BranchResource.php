@@ -23,6 +23,8 @@ class BranchResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -40,8 +42,7 @@ class BranchResource extends Resource
                         ->relationship('users', 'name')
                         ->multiple()
                         ->searchable()
-                        ->preload()
-                        ->required(),
+                        ->preload(),
                 ])->columns(2)
             ]);
     }

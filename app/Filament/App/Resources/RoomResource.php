@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\App\Resources;
 
-use App\Filament\Resources\RoomResource\Pages;
-use App\Models\Branch;
-use App\Models\Category;
+use App\Filament\App\Resources\RoomResource\Pages;
 use App\Models\Room;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class RoomResource extends Resource
 {
@@ -22,38 +22,21 @@ class RoomResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('branch_id')
-                    ->label('Branch')
-                    ->options(fn() => Branch::pluck('name', 'id')->toArray())
-                    ->required()
-                    ->searchable()
-                    ->preload()
-                    ->reactive()
-                    ->afterStateHydrated(
-                        fn($set, $state) => $state == null && $set('category_id', null)
-                    )
-                    ->afterStateHydrated(
-                        fn($set, $get) => $set('branch_id', Category::where('id', $get('category_id'))->value('branch_id'))
-                    ),
                 Forms\Components\Select::make('category_id')
-                    ->label('Category')
-                    ->options(
-                        fn(callable $get) => Category::where('branch_id', $get('branch_id'))->pluck('name', 'id')->toArray()
+                    ->relationship(
+                        name: 'category',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn(Builder $query) => $query->whereBelongsTo(Filament::getTenant())
                     )
-                    ->required()
-                    ->searchable()
-                    ->preload()
-                    ->reactive(),
+                    ->required(),
                 Forms\Components\TextInput::make('room_number')
-                    ->required()
-                    ->maxLength(128)
-                    ->label('Room Number'),
+                    ->required(),
             ]);
     }
 
@@ -61,11 +44,11 @@ class RoomResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('category.name')
+                    ->numeric()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('room_number')
                     ->searchable()
-                    ->sortable()
-                    ->label('Room Number'),
-                Tables\Columns\TextColumn::make('category.name')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
