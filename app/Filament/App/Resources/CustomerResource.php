@@ -34,13 +34,6 @@ class CustomerResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make([
-                    Forms\Components\Select::make('branch_id')
-                        ->relationship('branch', 'name')
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->columnSpanFull()
-                        ->maxWidth('2xl'),
                     Forms\Components\TextInput::make('first_name')
                         ->label("First Name")
                         ->required()
@@ -125,6 +118,7 @@ class CustomerResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 //
             ])

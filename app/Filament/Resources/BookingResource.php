@@ -15,6 +15,8 @@ use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Average;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class BookingResource extends Resource
 {
@@ -67,8 +69,10 @@ class BookingResource extends Resource
                         ),
                     Forms\Components\Select::make('room_id')
                         ->label('Room')
-                        ->options(
-                            fn(callable $get) => Room::where('category_id', $get('category_id'))->pluck('room_number', 'id')->toArray()
+                        ->relationship(
+                            name: 'room',
+                            titleAttribute: 'room_number',
+                            modifyQueryUsing: fn(Builder $query, callable $get) => $query->where('category_id', $get('category_id'))
                         )
                         ->required()
                         ->searchable()
@@ -82,12 +86,16 @@ class BookingResource extends Resource
                         ),
                     Forms\Components\Select::make('customer_id')
                         ->label('Customer')
-                        ->options(
-                            fn(callable $get) => Customer::where('branch_id', $get('branch_id'))->pluck('first_name', 'id')->toArray()
+                        ->relationship(
+                            name: 'customer',
+                            titleAttribute: 'first_name',
+                            modifyQueryUsing: fn(Builder $query, callable $get) => $query->where('branch_id', $get('branch_id'))
+                                ->orderBy('first_name')->orderBy('last_name')
                         )
-                        ->required()
-                        ->searchable(['first_name', 'last_name'])
-                        ->preload(),
+                        ->getOptionLabelFromRecordUsing(fn(Model $record) => "{$record->name} ({$record->email})")
+                        ->searchable(['first_name', 'last_name', 'email'])
+                        ->preload()
+                        ->required(),
                     Forms\Components\DatePicker::make('check_in')
                         ->required()
                         ->default(now()->format('Y-m-d'))
@@ -105,11 +113,13 @@ class BookingResource extends Resource
                     Forms\Components\TextInput::make('adults')
                         ->required()
                         ->numeric()
-                        ->default(1),
+                        ->default(1)
+                        ->minValue(1),
                     Forms\Components\TextInput::make('children')
                         ->required()
                         ->numeric()
-                        ->default(0),
+                        ->default(0)
+                        ->minValue(0),
                     Forms\Components\TextInput::make('price')
                         ->required()
                         ->numeric()

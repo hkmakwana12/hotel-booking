@@ -8,14 +8,19 @@ use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Room;
+use App\Models\State;
 use Filament\Facades\Filament;
 use Filament\Forms;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Average;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class BookingResource extends Resource
 {
@@ -37,7 +42,7 @@ class BookingResource extends Resource
                     Forms\Components\Select::make('category_id')
                         ->label('Category')
                         ->options(
-                            fn(callable $get) => Category::where('branch_id', Filament::getTenant()->id)->pluck('name', 'id')->toArray()
+                            fn() => Category::where('branch_id', Filament::getTenant()->id)->pluck('name', 'id')->toArray()
                         )
                         ->required()
                         ->searchable()
@@ -54,8 +59,10 @@ class BookingResource extends Resource
                         ),
                     Forms\Components\Select::make('room_id')
                         ->label('Room')
-                        ->options(
-                            fn(callable $get) => Room::where('category_id', $get('category_id'))->pluck('room_number', 'id')->toArray()
+                        ->relationship(
+                            name: 'room',
+                            titleAttribute: 'room_number',
+                            modifyQueryUsing: fn(Builder $query, callable $get) => $query->where('category_id', $get('category_id'))
                         )
                         ->required()
                         ->searchable()
@@ -69,12 +76,65 @@ class BookingResource extends Resource
                         ),
                     Forms\Components\Select::make('customer_id')
                         ->label('Customer')
-                        ->options(
-                            fn() => Customer::where('branch_id', Filament::getTenant()->id)->pluck('first_name', 'id')->toArray()
+                        ->relationship(
+                            name: 'customer',
+                            titleAttribute: 'first_name',
+                            modifyQueryUsing: fn(Builder $query) => $query->whereBelongsTo(Filament::getTenant())
+                                ->orderBy('first_name')->orderBy('last_name')
                         )
+                        ->getOptionLabelFromRecordUsing(fn(Model $record) => "{$record->name} ({$record->email})")
+                        ->searchable(['first_name', 'last_name', 'email'])
+                        ->preload()
                         ->required()
-                        ->searchable(['first_name', 'last_name'])
-                        ->preload(),
+                        ->createOptionForm([
+                            Forms\Components\Hidden::make('branch_id')->default(Filament::getTenant()->id),
+                            Forms\Components\Group::make([
+                                Forms\Components\TextInput::make('first_name')
+                                    ->label("First Name")
+                                    ->required()
+                                    ->maxWidth(128),
+                                Forms\Components\TextInput::make('last_name')
+                                    ->label("Last Name")
+                                    ->maxWidth(128),
+                                Forms\Components\TextInput::make('email')
+                                    ->label("Email Address")
+                                    ->email()
+                                    ->maxWidth(128),
+                                Forms\Components\TextInput::make('phone')
+                                    ->label("Phone Number")
+                                    ->tel()
+                                    ->maxWidth(15),
+                                Forms\Components\Textarea::make('address')
+                                    ->columnSpanFull(),
+                                Forms\Components\Select::make('country_id')
+                                    ->relationship('country', 'name')
+                                    ->searchable()
+                                    ->preload()
+                                    ->default(233)
+                                    ->live()
+                                    ->afterStateUpdated(
+                                        fn(callable $set) => $set('state_id', null)
+                                    ),
+                                Forms\Components\Select::make('state_id')
+                                    ->relationship('state', 'name')
+                                    ->searchable()
+                                    ->preload()
+                                    ->label("State / Province")
+                                    ->options(
+                                        fn(Forms\Get $get): Collection => State::query()
+                                            ->where("country_id", $get("country_id"))
+                                            ->pluck("name", "id")
+                                    ),
+                                Forms\Components\TextInput::make('city')
+                                    ->maxWidth(128),
+                                Forms\Components\TextInput::make('zipcode')
+                                    ->label("Zip / Postal code")
+                                    ->maxWidth(10),
+                            ])->columns(2)
+                        ])
+                        ->createOptionAction(
+                            fn(Action $action) => $action->modalWidth('3xl'),
+                        ),
                     Forms\Components\TextInput::make('price')
                         ->required()
                         ->numeric()
@@ -101,11 +161,13 @@ class BookingResource extends Resource
                     Forms\Components\TextInput::make('adults')
                         ->required()
                         ->numeric()
-                        ->default(1),
+                        ->default(1)
+                        ->minValue(1),
                     Forms\Components\TextInput::make('children')
                         ->required()
                         ->numeric()
-                        ->default(0),
+                        ->default(0)
+                        ->minValue(0),
                     Forms\Components\TextInput::make('total_amount')
                         ->required()
                         ->numeric()
