@@ -47,12 +47,12 @@ This is a hotel booking system built with Laravel and Filament. It provides an a
 
 6. Generate an application key:
    ```bash
-   php artisan key:generate --seed
+   php artisan key:generate
    ```
 
 7. Run database migrations:
    ```bash
-   php artisan migrate
+   php artisan migrate --seed
    ```
 
 8. Build assets:
